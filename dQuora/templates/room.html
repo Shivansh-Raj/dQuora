@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}| Space{% endblock title %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/styles/room.css">
+
+{% endblock style %}
+
+{% block body %}
+<div class="d-flex" style="height:100%">
+    <div class="sidebar dark toggleclasses">
+        <div class="rooms">
+            {% for space in spaces %}
+            <a href="/space_room/{{space.id}}"><div class="room" onclick="changeRoom('Fitness Freaks')">{{space.name}}</div></a>
+            {% endfor %}
+        </div>
+        <div class="footer">dQuora Spaces</div>
+    </div>
+
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <h1 id="room-name">{{room.name}}</h1>
+        </div>
+        <div class="chat-messages dark toggleclasses" id="chat-messages">
+            <!-- Messages will be appended here -->
+        </div>
+        <div class="">
+            <form>
+                {% csrf_token %}
+                <div class="d-flex chat-input dark toggleclasses">
+                    <input type="text"  id="id_message_send_input" placeholder="Type your message here...">
+                    <div class="d-flex" >
+                        <div class="custom-file-input d-flex">
+                          <!-- Custom button to trigger file selection dialog -->
+                          <button class="message-img-input" onclick="document.getElementById('imageInput').click();"><img src="/static/image-gallery.png" ></button>
+                          <!-- Actual file input -->
+                          <input type="file" id="imageInput" name="image" accept="image/*">
+                          <p class="selected-file" id="selectedFile"></p>
+                        </div>
+                    </div>
+                    <button onclick="sendMessage()" id="id_message_send_button" type="submit">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{{ room.name |json_script:"json-roomname" }}
+{{ request.user.username |json_script:"json-username" }}
+{% endblock body %}
+
+{% block script %}
+<script>
+    const roomName = JSON.parse(document.getElementById('json-roomname').textContent)
+    const userName = JSON.parse(document.getElementById('json-username').textContent)
+    console.log('userName is : '+userName)
+    console.log('roomName is : '+roomName)
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/'
+        + roomName
+        +'/'
+    );
+    chatSocket.onmessage = function(e){
+        console.log('onemessage')
+        const data = JSON.parse(e.data)
+        receiveMessage(data.username,data.message,data.image)
+        if (typeof data.image !== 'undefined') {
+            // Image is present
+            console.log('Image is present');
+        } else {
+            // Image is not present (undefined)
+            console.log('Image is not present'+data.image);
+        }
+    }
+    chatSocket.onclose = function(e){
+      console.log('onclose')
+    }
+
+    document.querySelector('#id_message_send_button').onclick=function(e){
+        console.log('button.clicked');
+        e.preventDefault();
+        const messageInput = document.querySelector('#id_message_send_input');
+        const message = messageInput.value
+        const imageInput = document.querySelector('#imageInput');
+        let imageUrl = '';  // Default to empty string if no image
+
+        if (imageInput && imageInput.files.length > 0) {
+            const imageFile = imageInput.files[0];
+            console.log(imageFile)
+            imageUrl = '/media/uploads/'+imageFile.name;  
+            const formData = new FormData();
+            formData.append('image',imageFile)
+
+            $.ajax({
+                url:'/upload_image',
+                data : formData,
+                type : 'POST',
+                processData: false,
+                contentType: false,                
+                headers: {
+                    'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() // Set the CSRF token header
+                },
+                success:function(data){
+                    if(data.image_url){
+                        sendMessage('rudeus',message,data.image_url)
+                    }
+                }
+            })
+        }
+        console.log(imageUrl)
+        if(message==='' && imageUrl===''){
+
+        }else{
+            chatSocket.send(JSON.stringify({
+            'message':message,
+            'username':userName,
+            'room':roomName,
+            'image':imageUrl,
+            }))
+            messageInput.value=''
+            imageInput.value=''
+            document.querySelector('#selectedFile').textContent=''
+        }
+        return false
+    }
+
+</script>
+
+
+
+<script>
+
+    function receiveMessage(username, text, image) {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${text}`;
+        
+        if (image) {
+                        // Create a div element
+            const imageDiv = document.createElement('div');
+            imageDiv.classList.add('message-img-div');
+            const imageElement = document.createElement('img');
+            imageElement.setAttribute('src', image);
+            imageElement.classList.add('message-image');
+            imageDiv.appendChild(imageElement);
+            messageDiv.appendChild(imageDiv);
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function oldMessage(username, text, image) {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${text}`;
+        
+        if (image) {
+                        // Create a div element
+            const imageDiv = document.createElement('div');
+            imageDiv.classList.add('message-img-div');
+            const imageElement = document.createElement('img');
+            imageElement.setAttribute('src', image);
+            imageElement.classList.add('message-image');
+            imageDiv.appendChild(imageElement);
+            messageDiv.appendChild(imageDiv);
+        }
+        
+        chatMessages.prepend(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+
+    // Function to send a new message
+    function sendMessage() {
+        const messageInput = document.getElementById('id_message_send_input');
+        if (messageInput.value.trim() !== '') {
+            receiveMessage('You', messageInput.value);  // Add the message to the chat
+            messageInput.value = '';  // Clear the input field
+        }
+    }
+
+    // Function to change rooms
+    function changeRoom(roomName) {
+        document.getElementById('room-name').innerText = roomName;
+        document.querySelectorAll('.room').forEach(room => room.classList.remove('active'));
+        document.querySelector(`.room:contains('${roomName}')`).classList.add('active');
+        document.getElementById('chat-messages').innerHTML = '';  // Clear messages for the new room
+    }
+
+</script>
+<script>
+    $(document).ready(function(){
+        {% for message in messages %}
+        var messageImage = "{{ message.image|default:''|escapejs }}";
+        if(messageImage){
+            oldMessage('{{message.user_name}}','{{message.message}}',messageImage)
+        }else{
+            oldMessage('{{message.user_name}}','{{message.message}}','')
+        }
+        {% endfor %}
+        scrollToBottom()
+    })
+</script>
+<script>
+    function scrollToBottom(){
+      const objDiv = document.querySelector('#chat-container')
+      objDiv.scrollTop = objDiv.scrollHeight
+    }
+</script>
+
+{% endblock script %}

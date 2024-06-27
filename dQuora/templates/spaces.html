@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}| Spaces{% endblock title %}
+{% block style %}
+<link rel="stylesheet" href="/static/styles/spaces.css">
+
+{% endblock style %}
+
+{% block body %}
+{% comment %} <header>
+    <h1>Themed Spaces for Real-Time Interaction</h1>
+    <p>Join a space and start engaging in live discussions on topics that interest you!</p>
+</header> {% endcomment %}
+
+<div class="container">
+    {% for room in rooms %}
+        <div class="space" onclick="direct_to_room({{room.id}})">
+            <img src="{{room.image.url}}" alt="Tech Talk">
+            
+            <div class="space-info">
+                <h2>{{room.name}}</h2>
+                <p>{{room.description}}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock body %}
+
+{% block script %}
+<script>
+    function direct_to_room(roomId) {
+        var newUrl = "/space_room/" + roomId; // Construct the new URL
+        window.location.href = newUrl; // Redirect to the new URL
+    }
+</script>
+{% endblock script %}
+

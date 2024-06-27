@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}| Home{% endblock title %}
+{% block style %}
+<style>
+    
+    .query:hover {
+      cursor: pointer; /* Change cursor to pointer (hand) */
+      text-decoration: underline; /* Add underline */
+    }
+    .query {
+      font-size:min(3.5vmin,2.5vh);
+    }
+    .content-initial{
+      font-size:min(3vmin,2vh);
+      padding-left:2%;
+      padding-right:2%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; /* Number of lines to show */
+      -webkit-box-orient: vertical;
+      overflow-y:hidden;
+      word-wrap: break-word; /* Ensures long words break and wrap to the next line */
+      word-break: break-all;
+      cursor:pointer;
+    }
+    .content{
+      font-size:min(3vmin,2vh);
+      padding-left:2%;
+      padding-right:2%;
+      word-wrap: break-word; /* Ensures long words break and wrap to the next line */
+      word-break: break-all;
+    }
+    
+    .content-final {
+      font-size:min(3vmin,2vh);
+      padding-left:2%;
+      padding-right:2%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; /* Number of lines to show */
+      -webkit-box-orient: vertical;
+      overflow-y:hidden;cursor:pointer;
+    }
+</style>
+
+{% endblock style %}
+
+{% block body %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between flex-parent " >
+        <div class="flex-right flex-fill container" style="position: fixed;min-width:20%">
+          <div class="container" >
+            <inline class="cat-info align-text-bottom m-0">
+              <p style="color:#BF7497;  font-weight: bold; 
+              font-size:min(4vmin,3vh);">Categories</p>
+            </inline>
+            {% for cat in categories %}
+              <div class="cat-info toggleclasses dark">
+                <img src="{{cat.image.url}}" alt="">
+                <span>{{cat.name}}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div  class="flex-center flex-fill "style="flex-direction:column" style="overflow-y:auto;">
+          <div  id="post-container">
+            
+          </div>
+          <div class="container-fluid mb-3"id="post-loader">  
+            <img src="/static/post_loader.gif" >
+          <div>
+        </div>
+        <div class="flex-left flex-fill" style="width:20%">
+        </div>
+        
+    </div>
+</div>
+
+
+{% endblock body %}
+
+{% block script %}
+<script src = "static/scripts/home.js"></script>
+
+
+{% endblock script %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}| Post{% endblock title %}
+
+{% block style %}
+
+<link rel="stylesheet" href="/static/styles/post_page.css">
+
+{% endblock style %}
+
+{% block body %}
+  <div class="query-page toggleclasses dark">
+    <div class="user-info">
+      <img src="{{post.user_name.avatar}}" alt="User Image" class="user-image">
+      <a href="/profile/{{post.user_name.id}}"><h2 class="user-name">{{post.user_name}}</h2></a>
+    </div>
+    <div class="query">
+      <h1 class="query-title  text-wrap">{{post.query}}</h1>
+      {% if post.image %}
+      <div class="post-img" id="post-img">
+        <img  src="{{post.image.url}}" >
+      </div>
+      {% endif %}
+      <div class="query-content ">
+        {% if post.content is not None %}
+          <p >{{post.content|linebreaks}}</p>
+        {% endif %}
+      </div>
+      <div class="button-container">
+        <button id="like-button" class="action-button toggleclasses dark like-button" onclick="btnClicked('like')">Like</button>
+        <button id="dislike-button" class="action-button toggleclasses dark dislike-button"onclick="btnClicked('dislike')">Dislike</button>
+        <button id="share-button" class="action-button toggleclasses dark">Share</button>
+    </div>
+  </div>
+    <div class="comments toggleclasses dark">
+      <!-- Add more comments as needed -->
+      <form class="comment-form toggleclasses  dark d-flex" method="POST" id="comment-form">
+        {% csrf_token %}
+        <input value="{{post.id}}" name="Post" type="hidden" >
+        <img src="{{user.avatar}}" alt="User Image" class="comment-image">
+        <textarea class="comment-input dark toggleclasses" name="content" placeholder="Write your comment here..." required></textarea>
+        <div class="inline"class="comment-image-selection">
+          <div class="custom-file-input d-flex">
+            <!-- Custom button to trigger file selection dialog -->
+            <button class="comment-image-button dark toggleclasses"onclick="document.getElementById('imageInput').click();"><img src="/static/image-gallery.png" class="comment-image-img dark toggleclasses"></button>
+            <!-- Actual file input -->
+            <input type="file" id="imageInput" name="image" accept="image/*">
+            <p class="selected-file" id="selectedFile"></p>
+          </div>
+        </div>
+        <button type="submit" class="comment-submit">Post Comment</button>
+      </form>
+      <!-- Comment Section -->
+      <div id="comment-loader" class="container-fluid mb-3 comment-loader">  
+        <img src="/static/post_loader.gif" >
+      </div>
+      <div  id="comments-section"class="my-3">
+      {% for comment in comments %}
+        <div class="comment toggleclasses dark">
+          <img src="{{comment.user_name.avatar}}" alt="User Image" class="comment-image">
+          <div class="comment-details">
+            <h3 class="comment-user">{{comment.user_name}}</h3>
+            <p class="comment-text">
+              {{comment.content}}
+            </p>
+            {% if comment.image %}
+            <div class="commented-image toggleclasses dark">
+              <img src="{{comment.image.url}}"></img>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock body %}
+
+{% block script %}
+<script src="https://unpkg.com/@lyket/widget@latest/dist/lyket.js?apiKey=pt_3a08e1054756892440454b981dee01">
+<script src = "/static/scripts/post_page.js"></script>
+<script>
+
+  $('#post-img').click(function(){
+    $('#post-img').toggleClass('post-img post-img-full')
+  })
+  $(document).ready(function(){
+    $('#comment-form').on('submit',function(event){
+      $('#comment-loader').css('display','block')
+      event.preventDefault();
+      var post_id={{post.id}}
+      var formData= new FormData(this);
+      $.ajax({
+        url:'/comment/'+post_id,
+        method:'POST',
+        data:formData,
+        processData: false, 
+        contentType: false,
+        headers: {
+          'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() // Set the CSRF token header
+        },
+  
+        success:function(response){
+          $('#comment-loader').css('display','none');
+          console.log('Commented Successfully!!!!!!');
+          $('#comment-form').trigger('reset');
+          $('#selectedFile').text('');
+  
+          var newCommentHtml = `
+            <div class="comment dark toggleclasses">
+              <img src="${response.new_comment.avatar}" alt="User Image" class="comment-image">
+              <div class="comment-details">
+                <h3 class="comment-user">${response.new_comment.username}</h3>
+                <p class="comment-text">${response.new_comment.content}</p>
+                ${response.new_comment.image ? `<div class="commented-image"><img src="${response.new_comment.image}" alt="Comment Image"></div>` : ''}
+              </div>
+            </div>
+          `;
+  
+          // Prepend the new comment to the comments section
+          $('#comments-section').prepend(newCommentHtml);
+        },
+        error:function(response){
+          $('#comment-loader').css('display','none');
+          $('.toast-body').text('Facing some error! Please try later.');
+          $('#myToast').toast('show');
+          console.error('Error:', error);
+        }
+      })
+    })
+  })
+
+  function btnClicked(name){
+    $('#'+name+'-button').toggleClass(name+'-button-active '+name+'-button');
+}
+
+
+
+
+/* CUstom Image Input Display */
+
+document.getElementById('imageInput').addEventListener('change', function(event) {
+    const fileName = event.target.files[0].name;
+    document.getElementById('selectedFile').textContent = `Selected file: ${fileName}`;
+});
+
+</script>
+{% endblock script %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}| Profile{% endblock title %}
+
+{% block style %}
+<link rel="stylesheet" href="/static/styles/profile.css">
+
+{% endblock style %}
+
+
+{% block body %}
+
+<div class="d-flex">
+    <div class="profile-sidebar">
+        <img src="{{user.avatar}}" alt="Profile Picture" class="img-fluid">
+        <h2>{{user.username}}</h2>
+        <p><strong>Email:</strong> {{user.email}}</p>
+        <p><strong>Password:</strong> ••••••••</p>
+        <p><strong>Bio:</strong> {{user.bio}}</p>
+        <p><strong>Joined:</strong> {{user.joined|date}}</p>
+        <div class="social-links text-center">
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+        </div>
+    </div>
+    <div class="profile-content">
+        {% comment %} {% for post in posts %}
+        <div class="post">
+            <h3>{{post.query}}</h3>
+            <p>{{post.content}}</p>
+            <div class="post-buttons">
+                <button class="btn btn-sm btn-primary">Modify</button>
+                <button class="btn btn-sm btn-danger">Delete</button>
+            </div>
+        </div>
+        {% endfor %} {% endcomment %}
+        <div  id="post-container">
+            {% for post in posts %}
+              <div class="container-fluid mb-3" id="post-container-{{post.id}}">
+                <div class="outer-post-block toggleclasses dark pb-0"  style="z-index:100; position:relative">
+                    {% if requested_id != request.user.id %}
+                      <div class="user-info">
+                        <img src="{{post.user_name.avatar}}" alt="User Image">
+                        <div class="d-flex" style="flex-direction:column">
+                        <a href="/profile/{{post.user_name.id}}"><span style="font-weight: bold; font-size:1.2vmax">{{post.user_name}}</span></a>
+                        <p style="font-size:min(2vmin,1vh);">{{post.time|date}}</p>
+                        </div>
+                      </div>
+                    {% endif %}
+                  <div class="post-block" id="content{{post.id}}" >
+                    <a href="post_page/{{post.id}}">
+                    <div class="query" >
+                      {{post.query}}
+                    </div>
+                    </a>  
+                    {% if post.image %}
+                      <div class="post-img toggleclasses dark" id="post-img">
+                        <img class="" src="{{post.image.url}}">
+                      </div>
+                    {% endif %}
+                    <div class="content"style="line-height: 1.5" id="content-final{{post.id}}">
+                      {{post.content|linebreaksbr}}
+                    </div>
+                  </div>
+                  <div class="post-buttons" >
+                    {% if perms.quora.delete_post and requested_id == request.user.id %}
+                      <button class="btn btn-sm btn-primary" onclick="showModificationPopup({{post.id}})">Modify</button>
+                      <button class="btn btn-sm btn-danger" id="post-delete{{post.id}}" onclick="delete_post({{post.id}})">Delete</button>
+                    {% endif %}
+                  </div>
+
+                </div>
+              </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+<div class="loader-container-popup " style='display:none'id="modification-popup" >
+    <div class="popup "> 
+      <button class="close-button" onclick="closePopupBox()">✖</button>
+        <div class="popup-content">
+          <form id="modification-form" enctype="multipart/form-data">
+            <div class="dropdown">
+            </div>
+            <img src="{{user.avatar}}" class="popup-image">
+            <input name="user_name" value="{{user.id}}"  type="hidden">
+            <input class="popup-text" name="query" placeholder="Your QUERY goes here!" id="query-modify-input" required></input>
+            <textarea class="popup-text-2" name="content" placeholder="Query's content!" id="myTextarea"></textarea>
+            <p id="charCount" style="font-size:min(3vmin,2vh);">Character Count: 0/500 </p>
+            <div class="d-flex" >
+              <div class="custom-file-input d-flex">
+                <!-- Custom button to trigger file selection dialog -->
+                <button class="post-popup-img" onclick="document.getElementById('imageInput').click();"><img src="/static/image-gallery.png" ></button>
+                <!-- Actual file input -->
+                <input type="file" id="imageInput" name="image" accept="image/*">
+                <p class="selected-file" id="selectedFile"></p>
+              </div>
+              <button class="popup-submit" id="form-submit-btn" type="submit">Confirm</button>
+            </div>
+          </form>
+        </div>
+    </div>
+  </div>
+
+  {% comment %} fetched POSTS {% endcomment %}
+  <ul id="postList" style="display:none">
+    {% for post in posts %}
+        <li data-post-id="query-{{ post.id }}">{{ post.query }}</li>
+        <li data-post-id="content-{{ post.id }}">{{ post.content }}</li>
+    {% endfor %}
+  </ul>
+{% endblock body %}
+
+{% block script %}
+
+<!-- Bootstrap JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script src = "/static/scripts/profile.js"></script>
+<script>
+    function delete_post(post_id){
+        $.ajax({
+            url:'/delete_post/'+post_id,
+            method:'DELETE',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            success:function(data){
+                message=data.message
+                toast_diaplay(message)
+                if(data.deleted){
+                    $('#post-container-'+post_id).text('This post was deleted!!').css('color','red');
+                }
+            }
+        })
+    }
+</script>
+{% endblock script %}

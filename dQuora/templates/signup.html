@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>dQuora | SignUp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="/static/styles/signup.css">
+
+  </head>
+  <body>
+    <main class="d-flex my-2">
+        <div class="avatars flex">
+          <h2>Select an Avatar</h2>
+          <img src="/static/avatars/avatar1.png" alt="Avatar 1" onclick="selectAvatar('/static/avatars/avatar1.png')">
+          <img src="/static/avatars/avatar2.png" alt="Avatar 2" onclick="selectAvatar('/static/avatars/avatar2.png')">
+          <img src="/static/avatars/avatar3.png" alt="Avatar 3" onclick="selectAvatar('/static/avatars/avatar3.png')">
+          <img src="/static/avatars/avatar4.png" alt="Avatar 4" onclick="selectAvatar('/static/avatars/avatar4.png')">
+        </div>
+    <div class="form-signin w-100 m-auto " style="padding-top:5%">
+      <form method="post" action="/signup">
+        {% csrf_token %}
+        <div class="d-flex  align-items-center">
+        <img id="selected-avatar-image" src=""style="height:100px;width:100px">
+        <h1 class="h3 mb-3 fw-normal decorative-border">Sign Up</h1>
+        </div>
+        <input type="text" id="avatar-id"name="avatar" class="form-control" value=""style="display:none">
+        <div class="form-floating"> 
+          <input type="text" name="username" class="form-control" value="{{form.username.value}}" id="text" placeholder="username">
+          <label for="username">Username</label>
+        </div>
+        <div class="form-floating">
+          <input type="email" name="email" class="form-control"  value="{{form.email.value}}"id="email" placeholder="email">
+          <label for="email">Email</label>
+        </div>
+        <div class="form-floating floatingPassword">
+          <input type="password" class="form-control " value="{{form.password.value}}"id="floatingPassword" placeholder="Password" name="password1">
+          <label for="floatingPassword">Password</label>
+        </div>
+        <div class="form-floating floatingPassword">
+          <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password2">
+          <label for="floatingPassword">Password Confirmation</label>
+        </div>
+        <textarea name="bio"class="form-control my-2" placeholder="Tells us about yourself" style="display:none" id="user-bio"></textarea>
+        <button class="btn btn-outline color-change-button w-100 py-2" type="button" id="next-btn">Next</button>
+        <button class="btn btn-outline color-change-button w-100 py-2" type="submit" id="submit-btn" style="display:none">Sign Up</button>
+        <p class="mt-3 mb-3 text-body-secondary">&copy; 2017–2023</p>
+      </form>
+      <div class="flash-message m-1" >
+        {{form.errors}}
+        {{pass_mismatch.message}}</div>
+      <div class="flash-message-success m-1" >{{success}}</div>
+      <script src="/docs/5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+      <a href="{% url 'login' %}" class="btn btn-info"><--Back to login</a>
+      </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#selected-avatar-image').attr('src', '/static/avatars/anonymous.png');
+  });
+    function selectAvatar(src) {
+        document.getElementById('selected-avatar-image').src = src;
+        document.getElementById('avatar-id').value = src;
+        
+    }
+  </script>
+  <script>
+    $('#next-btn').click(function() {
+      $('#submit-btn').css('display', 'block');
+      $('#next-btn').css('display', 'none');
+      $('#user-bio').css('display','block');
+      $('.floatingPassword').css('display','none')
+    });
+  </script>
+</html>
