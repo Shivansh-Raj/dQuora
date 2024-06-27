@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block style %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        padding: 2vh 2vw;
+    }
+    .space {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin: 1vh 1vw;
+        width: calc(30% - 2vw);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        height:50vh;
+        transition: transform 0.2s;
+    }
+    .space:hover {
+        transform: scale(1.05);
+    }
+    .space img {
+        width: 100%;
+        max-height: 25vh;
+    }
+    .space-info {
+        padding: 2vh 2vw;
+    }
+    .space-info h2 {
+        font-size:min(3vmin,3vh);
+        margin-top: 0;
+    }
+    .space-info p {
+        font-size:min(2vmin,2vh);
+        color: #666;
+    }
+    @media (max-width: 768px) {
+        .space {
+            width: calc(45% - 2vw);
+        }
+        header h1 {
+            font-size: 6vw;
+        }
+        header p {
+            font-size: 4vw;
+        }
+        .space-info h2 {
+            font-size: 5vw;
+        }
+        .space-info p {
+            font-size: 4vw;
+        }
+    }
+    @media (max-width: 480px) {
+        .space {
+            width: calc(90% - 2vw);
+        }
+        header h1 {
+            font-size: 8vw;
+        }
+        header p {
+            font-size: 6vw;
+        }
+        .space-info h2 {
+            font-size: 6vw;
+        }
+        .space-info p {
+            font-size: 5vw;
+        }
+    }
+</style>
+{% endblock style %}
+
+{% block body %}
+{% comment %} <header>
+    <h1>Themed Spaces for Real-Time Interaction</h1>
+    <p>Join a space and start engaging in live discussions on topics that interest you!</p>
+</header> {% endcomment %}
+
+<div class="container">
+    {% for room in rooms %}
+        <div class="space" onclick="direct_to_room({{room.id}})">
+            <img src="{{room.image.url}}" alt="Tech Talk">
+            
+            <div class="space-info">
+                <h2>{{room.name}}</h2>
+                <p>{{room.description}}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock body %}
+
+{% block script %}
+<script>
+    function direct_to_room(roomId) {
+        var newUrl = "/space_room/" + roomId; // Construct the new URL
+        window.location.href = newUrl; // Redirect to the new URL
+    }
+</script>
+{% endblock script %}
+

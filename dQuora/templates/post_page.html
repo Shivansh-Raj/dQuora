@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block style %}
+
+<style>
+    .button-container {
+        display: flex;
+        padding-left:2%;
+    }
+    
+    .action-button {
+        font-size:min(3vmin,2vh);
+        padding:min(2vmin,1vh) min(3vmin,2vh) min(2vmin,1vh) min(3vmin,2vh)  ;
+        border: 2px;
+        border-radius: 5px;
+        cursor: pointer;
+        position: relative;
+        overflow: visible;
+        transition: transform 0.2s;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .action-button.dark{
+      background-color:#000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    
+    .like-button {
+        background-color: white;
+        color: green;
+    }
+    .like-button:hover,.like-button-active {
+        background-color:green;
+        color: white;
+        animation: glow 1s ease-in-out; 
+    }
+    .dislike-button {
+        background-color: white;
+        color: #f44336;
+    }
+    .dislike-button:hover,.dislike-button-active  {
+        background-color: #f44336;
+        color: white;
+        animation: glow 1s ease-in-out;
+    }
+    #share-button {
+        background-color: white;
+        color: #008CBA;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    #share-button.dark{
+      background-color:#000;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    #share-button:hover{
+        background-color: #008CBA;
+        color: white;
+        animation: glow 1s ease-in-out;
+    }
+    
+    .action-button:active {
+        transform: scale(0.95);
+    }
+    
+    @keyframes glow {
+        0% {
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+        50% {
+            box-shadow: 0 0 30px rgba(255, 255, 255, 1);
+        }
+        100% {
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+    }
+    
+    .glowing {
+        animation: glow 1s ease-in-out;
+    }
+    
+    .heart {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: red;
+        transform: rotate(-45deg);
+        animation: fly 1s ease-in-out forwards;
+        opacity: 0;
+        z-index: 10;
+    }
+    
+    .heart:before, .heart:after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: red;
+        border-radius: 50%;
+    }
+    
+    .heart:before {
+        top: -10px;
+        left: 0;
+    }
+    
+    .heart:after {
+        top: 0;
+        left: -10px;
+    }
+    
+    @keyframes fly {
+        0% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-100px) scale(0.5);
+        }
+    }
+    
+</style>
+
+<style>
+  .post-img{
+    text-align:center;
+    background-color:#d0d0d0;
+  }
+  .post-img img{
+    width:65%;
+    align-items: center;
+    transition: width 0.3s ease;
+  }
+  .post-img-full{
+    text-align:center;
+    background-color:#d0d0d0;
+    
+  }
+  .post-img-full img{
+    width:100%;
+    transition: width 0.3s ease;
+  }
+</style>
+{% endblock style %}
+
+{% block body %}
+  <div class="query-page toggleclasses dark">
+    <div class="user-info">
+      <img src="{{post.user_name.avatar}}" alt="User Image" class="user-image">
+      <h2 class="user-name">{{post.user_name}}</h2>
+    </div>
+    <div class="query">
+      <h1 class="query-title  text-wrap">{{post.query}}</h1>
+      {% if post.image %}
+      <div class="post-img" id="post-img">
+        <img  src="{{post.image.url}}" >
+      </div>
+      {% endif %}
+      <div class="query-content ">
+        {% if post.content is not None %}
+          <p >{{post.content|linebreaks}}</p>
+        {% endif %}
+      </div>
+      <div class="button-container">
+        <button id="like-button" class="action-button toggleclasses dark like-button" onclick="btnClicked('like')">Like</button>
+        <button id="dislike-button" class="action-button toggleclasses dark dislike-button"onclick="btnClicked('dislike')">Dislike</button>
+        <button id="share-button" class="action-button toggleclasses dark">Share</button>
+    </div>
+  </div>
+    <div class="comments toggleclasses dark">
+      <!-- Add more comments as needed -->
+      <form class="comment-form toggleclasses  dark d-flex" method="POST" id="comment-form">
+        {% csrf_token %}
+        <input value="{{post.id}}" name="Post" type="hidden" >
+        <img src="{{user.avatar}}" alt="User Image" class="comment-image">
+        <textarea class="comment-input dark toggleclasses" name="content" placeholder="Write your comment here..." required></textarea>
+        <div class="inline"class="comment-image-selection">
+          <div class="custom-file-input d-flex">
+            <!-- Custom button to trigger file selection dialog -->
+            <button class="comment-image-button dark toggleclasses"onclick="document.getElementById('imageInput').click();"><img src="/static/image-gallery.png" class="comment-image-img dark toggleclasses"></button>
+            <!-- Actual file input -->
+            <input type="file" id="imageInput" name="image" accept="image/*">
+            <p class="selected-file" id="selectedFile"></p>
+          </div>
+        </div>
+        <button type="submit" class="comment-submit">Post Comment</button>
+      </form>
+      <!-- Comment Section -->
+      <div id="comment-loader" class="container-fluid mb-3 comment-loader">  
+        <img src="/static/post_loader.gif" >
+      </div>
+      <div  id="comments-section"class="my-3">
+      {% for comment in comments %}
+        <div class="comment toggleclasses dark">
+          <img src="{{comment.user_name.avatar}}" alt="User Image" class="comment-image">
+          <div class="comment-details">
+            <h3 class="comment-user">{{comment.user_name}}</h3>
+            <p class="comment-text">
+              {{comment.content}}
+            </p>
+            {% if comment.image %}
+            <div class="commented-image toggleclasses dark">
+              <img src="{{comment.image.url}}"></img>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock body %}
+
+{% block script %}
+<script src="https://unpkg.com/@lyket/widget@latest/dist/lyket.js?apiKey=pt_3a08e1054756892440454b981dee01"></script>
+
+<script>
+    function btnClicked(name){
+        $('#'+name+'-button').toggleClass(name+'-button-active '+name+'-button');
+    }
+</script>
+
+{% comment %} Like Button feature {% endcomment %}
+<script>
+    $(document).ready(function() {
+      $('#like-button').click(function() {
+          const button = $(this);
+  
+          // Create hearts
+          for (let i = 0; i < 5; i++) {
+              const heart = $('<div class="heart"></div>');
+              const x = Math.random() * 80 - 70; // Adjust the horizontal range
+              heart.css({
+                  top: '-20px', // Position above the button
+                  left: '50%',
+                  marginLeft: `${x}px`,
+                  animationDelay: `${i * 0.1}s`
+              });
+              button.append(heart);
+              heart.on('animationend', function() {
+                  $(this).remove();
+              });
+          }
+      });
+  });
+    
+  
+</script>
+
+{% comment %} POST {% endcomment %}
+<script>
+  $('#post-img').click(function(){
+    $('#post-img').toggleClass('post-img post-img-full')
+  })
+</script>
+
+{% comment %} CUstom Image Input Display {% endcomment %}
+<script>
+  document.getElementById('imageInput').addEventListener('change', function(event) {
+      const fileName = event.target.files[0].name;
+      document.getElementById('selectedFile').textContent = `Selected file: ${fileName}`;
+  });
+</script>
+
+{% comment %} Comment form submission {% endcomment %}
+<script>
+$(document).ready(function(){
+  $('#comment-form').on('submit',function(event){
+    $('#comment-loader').css('display','block')
+    event.preventDefault();
+    var post_id={{post.id}}
+    var formData= new FormData(this);
+    $.ajax({
+      url:'/comment/'+post_id,
+      method:'POST',
+      data:formData,
+      processData: false, 
+      contentType: false,
+      headers: {
+        'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val() // Set the CSRF token header
+      },
+
+      success:function(response){
+        $('#comment-loader').css('display','none');
+        console.log('Commented Successfully!!!!!!');
+        $('#comment-form').trigger('reset');
+        $('#selectedFile').text('');
+
+        var newCommentHtml = `
+          <div class="comment dark toggleclasses">
+            <img src="${response.new_comment.avatar}" alt="User Image" class="comment-image">
+            <div class="comment-details">
+              <h3 class="comment-user">${response.new_comment.username}</h3>
+              <p class="comment-text">${response.new_comment.content}</p>
+              ${response.new_comment.image ? `<div class="commented-image"><img src="${response.new_comment.image}" alt="Comment Image"></div>` : ''}
+            </div>
+          </div>
+        `;
+
+        // Prepend the new comment to the comments section
+        $('#comments-section').prepend(newCommentHtml);
+      },
+      error:function(response){
+        $('#comment-loader').css('display','none');
+        $('.toast-body').text('Facing some error! Please try later.');
+        $('#myToast').toast('show');
+        console.error('Error:', error);
+      }
+    })
+  })
+})
+</script>
+{% endblock script %}

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0;
+        }
+        
+        .container {
+            display: flex;
+            width: 80%;
+            height: 80%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar {
+            width: 25%;
+            background: #2c3e50;
+            color: white;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .sidebar h2 {
+            margin-bottom: 20px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+        }
+        
+        .sidebar li {
+            padding: 10px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .sidebar li:hover {
+            background: #34495e;
+            border-radius: 5px;
+            padding-left: 10px;
+        }
+        
+        .chat-area {
+            width: 75%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+        
+        .header {
+            background: #3498db;
+            color: white;
+            padding: 20px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .header button:hover {
+            background: #c0392b;
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #ecf0f1;
+        }
+        
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+        
+        .message .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .message .text {
+            max-width: 70%;
+            background: #bdc3c7;
+            padding: 10px;
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        .message .text::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: -10px;
+            width: 0;
+            height: 0;
+            border-width: 10px;
+            border-style: solid;
+            border-color: transparent #bdc3c7 transparent transparent;
+        }
+        
+        .input-area {
+            display: flex;
+            padding: 20px;
+            background: #bdc3c7;
+            border-bottom-right-radius: 10px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Chat Rooms</h2>
+            <ul>
+                <li>General</li>
+                <li>Sports</li>
+                <li>Music</li>
+                <li>Technology</li>
+                <li>Movies</li>
+                <li>Travel</li>
+            </ul>
+        </div>
+        <div class="chat-area">
+            <div class="header">
+                <h2>Welcome to the Chat Room</h2>
+            </div>
+            <div class="messages" id="messages">
+                <!-- Messages will appear here -->
+            </div>
+            <div class="input-area">
+                <input type="text"  id="messageInput" placeholder="Type your message here..." >
+                <button id="sticker-button p-1">☺️</button>
+                <button onclick="sendMessage()" id="sendButton" type="submit">Send</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+<script>
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+document.getElementById('messageInput').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const messageText = messageInput.value.trim();
+
+    if (messageText !== '') {
+        const messagesContainer = document.getElementById('messages');
+
+        // Create a new message element
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+
+        const avatarElement = document.createElement('div');
+        avatarElement.classList.add('avatar');
+        avatarElement.textContent = 'U'; // Placeholder for user initial
+
+        const textElement = document.createElement('div');
+        textElement.classList.add('text');
+        textElement.textContent = messageText;
+
+        messageElement.appendChild(avatarElement);
+        messageElement.appendChild(textElement);
+        messagesContainer.appendChild(messageElement);
+
+        // Clear the input field
+        messageInput.value = '';
+        messageInput.focus();
+
+        // Scroll to the bottom of the messages
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
+
+</script>
+</html>
