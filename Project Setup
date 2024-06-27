@@ -1,0 +1,107 @@
+dQuora Project Setup
+
+Prerequisites
+    Python 3.x
+    Django
+    MySQL
+
+Step-by-Step Setup
+
+1. Clone the Repository
+Clone the repository to your local machine and navigate to the project directory:
+
+bash
+    git clone https://github.com/Shivansh-Raj/dQuora.git
+cd dQuora
+
+2. Create a Virtual Environment
+It's a good practice to use a virtual environment for your Python projects:
+
+bash
+    python -m venv env
+
+3. Activate the Virtual Environment
+On Windows:
+bash
+    env\Scripts\activate
+
+On macOS and Linux:
+bash
+    source env/bin/activate
+
+4. Install Dependencies
+Install the required Python packages using pip:
+bash
+    pip install -r requirements.txt
+
+5. Setup the Database
+5.1. Install MySQL
+Ensure you have MySQL installed on your system. You can download it from the MySQL official website.
+
+5.2. Create the Database and Import Data
+Open Command Prompt and navigate to the project directory:
+bash
+Copy code
+    cd path\to\your\project\dQuora
+
+Run the setup script:
+bash
+    python setup_db.py
+This script will:
+
+Create a database named dquora if it doesn't already exist.
+Import the data from dquora_dump.sql into the dquora database.
+You will be prompted to enter your MySQL root password during this process.
+
+Note: If the dquora database does not exist, you can manually create it using MySQL:
+
+bash
+    mysql -u root -p
+sql
+    CREATE DATABASE dquora;
+    EXIT;
+Ensure that the dquora_dump.sql file is located in the root directory of your project (same directory as manage.py).
+
+6. Configure Django Settings
+Update the DATABASES setting in dquora_project/settings.py to match your MySQL configuration:
+
+python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'dquora',
+        'USER': 'your_mysql_user',          # usually "root"
+        'PASSWORD': 'your_mysql_password',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+}
+Replace your_mysql_user and your_mysql_password with your actual MySQL username and password.
+
+7. Run Django Migrations (if necessary)
+bash
+    python manage.py migrate
+
+8. Configure WSGI for Deployment
+To run the project on a WSGI server, ensure that the wsgi.py file in your project directory is correctly configured. Here’s a basic example of what it should look like:
+
+python
+    import os
+    from django.core.wsgi import get_wsgi_application
+
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dquora_project.settings')
+    application = get_wsgi_application()
+
+9. Start the Development Server
+For development purposes, you can start the Django development server:
+bash
+    python manage.py runserver
+
+By following these steps, you should be able to set up and run the dQuora project successfully. Ensure that all necessary files are included in your repository for a smooth setup and deployment process.
+
+
+
+
+
+
+        
